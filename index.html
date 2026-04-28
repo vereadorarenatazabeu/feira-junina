@@ -173,36 +173,35 @@
     }
 
     async function executarFetch(dados, btn, msg) {
-      try {
-        const response = await fetch(WEBAPP_URL, {
-          method: 'POST',
-          body: JSON.stringify(dados),
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        });
-        
-        const resText = await response.text();
-        let resultado;
-        try {
-          resultado = JSON.parse(resText);
-        } catch(e) {
-          throw new Error("Erro no servidor: Verifique se o Script foi publicado como 'Qualquer pessoa'.");
-        }
+  try {
+    // Enviamos os dados. O 'mode: no-cors' evita o erro de bloqueio, 
+    // mas impede que leiamos a resposta (que você disse que não importa).
+    await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify(dados),
+      mode: 'no-cors', // Evita o erro de CORS no navegador
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    });
 
-        if(resultado.success) {
-          msg.textContent = '✅ ' + resultado.message;
-          msg.className = 'msg success';
-          document.querySelector('form').reset();
-          document.getElementById('outroSegmentoDiv').style.display = 'none';
-        } else {
-          throw new Error(resultado.message);
-        }
-      } catch(e) {
-        msg.textContent = '❌ ' + e.message;
-        msg.className = 'msg error';
-      } finally {
-        btn.disabled = false;
-        btn.value = 'ENVIAR CADASTRO';
-      }
+    // Se o fetch não deu erro de rede (offline), tratamos como sucesso
+    msg.textContent = '✅ Cadastro enviado com sucesso!';
+    msg.className = 'msg success';
+    msg.style.display = 'block';
+    
+    document.querySelector('form').reset();
+    document.getElementById('outroSegmentoDiv').style.display = 'none';
+
+  } catch(e) {
+    // Só entra aqui se a internet cair ou o URL estiver muito errado
+    console.error(e);
+    msg.textContent = '❌ Erro de conexão. Verifique sua internet.';
+    msg.className = 'msg error';
+    msg.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.value = 'ENVIAR CADASTRO';
+  }
+}
     }
   </script>
 </head>
