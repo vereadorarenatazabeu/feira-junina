@@ -135,11 +135,13 @@
       const msgDiv = document.getElementById('msg');
       const file = document.getElementById('logo').files[0];
 
+      // Feedback apenas no botão durante o envio
       submitBtn.disabled = true;
       submitBtn.value = 'ENVIANDO...';
-      msgDiv.style.display = 'block';
-      msgDiv.className = 'msg';
-      msgDiv.textContent = 'Enviando cadastro...';
+      
+      // Esconde mensagens anteriores
+      msgDiv.style.display = 'none';
+      msgDiv.textContent = '';
 
       const segmentoFinal = document.getElementById('segmento').value === 'Outro' 
         ? document.getElementById('outroSegmento').value 
@@ -174,6 +176,7 @@
 
     async function executarFetch(dados, btn, msg) {
       try {
+        // Envio otimista para ignorar bloqueios de CORS do navegador
         await fetch(WEBAPP_URL, {
           method: 'POST',
           body: JSON.stringify(dados),
@@ -181,6 +184,7 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
 
+        // Sucesso visual
         msg.textContent = '✅ Cadastro enviado com sucesso!';
         msg.className = 'msg success';
         msg.style.display = 'block';
