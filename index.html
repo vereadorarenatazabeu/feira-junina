@@ -129,19 +129,43 @@
         document.getElementById('segmento').value==='Outro' ? 'block' : 'none';
     }
 
+    async function executarFetch(dados, btn, msg) {
+      try {
+        await fetch(WEBAPP_URL, {
+          method: 'POST',
+          body: JSON.stringify(dados),
+          mode: 'no-cors', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+
+        // Só aparece agora
+        msg.textContent = '✅ Cadastro enviado com sucesso!';
+        msg.className = 'msg success';
+        msg.style.display = 'block';
+        
+        document.querySelector('form').reset();
+        document.getElementById('outroSegmentoDiv').style.display = 'none';
+
+      } catch(e) {
+        msg.textContent = '❌ Erro de conexão.';
+        msg.className = 'msg error';
+        msg.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.value = 'ENVIAR CADASTRO';
+      }
+    }
+
     async function enviarDados(event){
       event.preventDefault();
       const submitBtn = document.querySelector('input[type="submit"]');
       const msgDiv = document.getElementById('msg');
       const file = document.getElementById('logo').files[0];
 
-      // Feedback apenas no botão durante o envio
+      // Reset visual antes de começar
       submitBtn.disabled = true;
       submitBtn.value = 'ENVIANDO...';
-      
-      // Esconde mensagens anteriores
       msgDiv.style.display = 'none';
-      msgDiv.textContent = '';
 
       const segmentoFinal = document.getElementById('segmento').value === 'Outro' 
         ? document.getElementById('outroSegmento').value 
@@ -171,35 +195,6 @@
         reader.readAsDataURL(file);
       } else {
         await executarFetch(dados, submitBtn, msgDiv);
-      }
-    }
-
-    async function executarFetch(dados, btn, msg) {
-      try {
-        // Envio otimista para ignorar bloqueios de CORS do navegador
-        await fetch(WEBAPP_URL, {
-          method: 'POST',
-          body: JSON.stringify(dados),
-          mode: 'no-cors', 
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        });
-
-        // Sucesso visual
-        msg.textContent = '✅ Cadastro enviado com sucesso!';
-        msg.className = 'msg success';
-        msg.style.display = 'block';
-        
-        document.querySelector('form').reset();
-        document.getElementById('outroSegmentoDiv').style.display = 'none';
-
-      } catch(e) {
-        console.error(e);
-        msg.textContent = '❌ Erro de conexão. Verifique sua internet.';
-        msg.className = 'msg error';
-        msg.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.value = 'ENVIAR CADASTRO';
       }
     }
   </script>
