@@ -10,7 +10,6 @@
     body { 
       min-height: 100vh; 
       font-family: 'Roboto', Arial, sans-serif;
-      /* Fundo fixo alinhado ao topo para não cortar as bandeirinhas */
       background: url('https://i.imgur.com/VM4kjwQ.jpeg') no-repeat center top fixed;
       background-size: cover;
       display: flex;
@@ -19,7 +18,6 @@
       padding-bottom: 40px;
     }
 
-    /* Espaçador para deixar as bandeirinhas visíveis no topo */
     .visual-header {
       width: 100%;
       height: 180px; 
@@ -80,6 +78,7 @@
 
     .msg { text-align: center; font-weight: bold; margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 13px; display: none; background: #fff; }
     .msg.success { color: #155724; border-left: 5px solid #28a745; }
+    .msg.error { color: #721c24; border-left: 5px solid #dc3545; }
     
     #outroSegmentoDiv { display: none; margin-top: -5px; margin-bottom: 10px; }
     .file-wrapper input[type="file"] { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px dashed rgba(255,255,255,0.5); }
@@ -139,6 +138,7 @@
       submitBtn.disabled = true;
       submitBtn.value = 'ENVIANDO...';
       msgDiv.style.display = 'block';
+      msgDiv.className = 'msg';
       msgDiv.textContent = 'Enviando cadastro...';
 
       const segmentoFinal = document.getElementById('segmento').value === 'Outro' 
@@ -174,18 +174,31 @@
 
     async function executarFetch(dados, btn, msg) {
       try {
-        await fetch(WEBAPP_URL, {
+        const response = await fetch(WEBAPP_URL, {
           method: 'POST',
           body: JSON.stringify(dados),
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
-        msg.textContent = '✅ Cadastro enviado com sucesso!';
-        msg.className = 'msg success';
-        document.querySelector('form').reset();
+        
+        const resText = await response.text();
+        let resultado;
+        try {
+          resultado = JSON.parse(resText);
+        } catch(e) {
+          throw new Error("Erro no servidor: Verifique se o Script foi publicado como 'Qualquer pessoa'.");
+        }
+
+        if(resultado.success) {
+          msg.textContent = '✅ ' + resultado.message;
+          msg.className = 'msg success';
+          document.querySelector('form').reset();
+          document.getElementById('outroSegmentoDiv').style.display = 'none';
+        } else {
+          throw new Error(resultado.message);
+        }
       } catch(e) {
-        msg.textContent = '✅ Cadastro enviado com sucesso!';
-        msg.className = 'msg success';
-        document.querySelector('form').reset();
+        msg.textContent = '❌ ' + e.message;
+        msg.className = 'msg error';
       } finally {
         btn.disabled = false;
         btn.value = 'ENVIAR CADASTRO';
@@ -196,7 +209,6 @@
 <body>
   <div class="content-wrapper">
     <div class="visual-header"></div>
-    
     <div class="form-container">
       <form onsubmit="enviarDados(event)">
         <label>NOME <input type="text" id="nome" required></label>
